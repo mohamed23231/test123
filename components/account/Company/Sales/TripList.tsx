@@ -62,52 +62,47 @@ MyServicesProp) => {
   };
 
   async function statusChangeHandler(data: any) {
+    console.log("data.confirm_image[0] is", data.confirm_image[0]);
     console.log("dataisssss", data.confirm_image);
-    const formData = new FormData();
-    // if (data.status === "completed" && !data.confirm_image) {
-    //   notifyIssue("The confirm image is required to complete the trip");
-    //   return;
-    // }
-
-    if (data.status === "rejected") {
-      formData.append("status", data.status);
-      formData.append("reject_reason", data.rejection_reason);
-    } else if (data.status === "completed") {
-      console.log(
-        "asdasdasdssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssad"
-      );
-      if (data.confirm_image instanceof FileList) {
-        console.log("ssssssssdsdsdsd");
-        for (let i = 0; i < data.confirm_image.length; i++) {
-          formData.append("confirm_image", data.confirm_image[i]); // Append each image file with the same key
-        }
-      }
-    } else {
-      formData.append("status", data.status);
+    if (data.status === "completed" && !data.confirm_image[0]) {
+      notifyIssue("The confirm image is required to complete the trip");
+      return;
     }
-    // console.log(data);
     try {
-      //   setIsLoading(true);
+      // setIsLoading(true);
+      const formData = new FormData();
+
+      if (data.status === "rejected") {
+        formData.append("status", data.status);
+        formData.append("reject_reason", data.rejection_reason);
+      } else if (data.status === "completed") {
+        console.log(data.confirm_image[0]);
+        formData.append("confirm_image", data.confirm_image[0]);
+        formData.append("status", data.status);
+      } else {
+        formData.append("status", data.status);
+      }
+
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
         router.push("/auth/login");
         throw new Error("Access token not found in local storage");
       }
 
-      // const res = await axios.put(
-      //   `${API_BASE_URL}/trips/change-status/${Tid}/`,
-      //   formData,
-      //   {
-      //     headers: {
-      //       Accept: "application/json",
-      //       Authorization: `Bearer ${accessToken}`,
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // );
-      // onStatusChangeSuccess();
+      const res = await axios.put(
+        `${API_BASE_URL}/trips/change-status/${Tid}/`,
+        formData,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      onStatusChangeSuccess();
 
-      // console.log(res);
+      console.log(res);
     } catch (error: any) {
       console.log("error from add loading errors", error);
       formErrorHandler(error);
